@@ -50,6 +50,7 @@ class _KMeansScreenState extends State<KMeansScreen> {
   }
 
   String? kExact;
+  String? initialCentroidRowIDs;
   String? rangeMin;
   String? rangeMax;
   String? result;
@@ -93,19 +94,33 @@ class _KMeansScreenState extends State<KMeansScreen> {
     if (form.validate()) {
       form.save();
 
-      if (kExact == null) {
+      if (kExact == null || initialCentroidRowIDs == null) {
         _showDialog("Harap masukkan data yang dibutuhkan");
       } else {
         setState(() {
           totalCluster = 0;
           totalIteration = 0;
           duration = "";
+          initialCentroids = {};
+          results = {};
           isSearching = true;
         });
 
         sendData();
       }
     }
+  }
+
+  void showSnackBar(String pesan, Color color) {
+    final snackbar = SnackBar(
+      duration: const Duration(seconds: 2),
+      content: Text(
+        pesan,
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: color,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
 
   sendData() async {
@@ -115,13 +130,26 @@ class _KMeansScreenState extends State<KMeansScreen> {
 
     var requestBody = {
       "k_exact": kExact!,
+      "initial_centroid_row_ids": initialCentroidRowIDs!,
     };
 
     final res = await http.post(url, headers: null, body: requestBody);
     print('res.statusCode: ${res.statusCode}');
+
+    statusCode = res.statusCode;
+    if (statusCode != 200) {
+      setState(() {
+        isSearching = false;
+        resultController.text = res.body;
+        print('result: ${res.body}');
+      });
+
+      showSnackBar(res.body, Colors.redAccent);
+      return;
+    }
+
     var decodedJson = jsonDecode(res.body);
     print('result: $decodedJson');
-    statusCode = res.statusCode;
 
     var resp = KMeansResponse.fromJson(decodedJson);
     statusCode = res.statusCode;
@@ -175,9 +203,27 @@ class _KMeansScreenState extends State<KMeansScreen> {
                   obscureText: false,
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30,
                 ),
+                TextFormField(
+                  decoration: getInputDecoration(
+                    "Data ID Centroid Awal",
+                    "Masukkan Data ID Pilihan Centroid Awal, sejumlah nilai K, dipisah koma ,",
+                    null,
+                  ),
+                  maxLines: 2,
+                  validator: (val) => (val!.isEmpty)
+                      ? 'minimal 1 karakter, sesuaikan dengan nilai K'
+                      : null,
+                  onSaved: (val) => initialCentroidRowIDs = val,
+                  obscureText: false,
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+
                 // TextFormField(
                 //   decoration: getInputDecoration(
                 //     "K Range Max",
@@ -202,23 +248,34 @@ class _KMeansScreenState extends State<KMeansScreen> {
                   },
                   child: const Text("Calculate"),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
-                Text("Total Cluster: $totalCluster"),
-                SizedBox(
-                  height: 20,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Text("Total Cluster: $totalCluster"),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Text("Total Iteration: $totalIteration"),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Text("Duration: $duration"),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                  ],
                 ),
-                Text("Total Iteration: $totalIteration"),
-                SizedBox(
-                  height: 20,
-                ),
-                Text("Duration: $duration"),
-                SizedBox(
-                  height: 20,
+                const SizedBox(
+                  height: 10,
                 ),
                 Text("Centroid Awal: $initialCentroids"),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 (isSearching)
@@ -226,12 +283,19 @@ class _KMeansScreenState extends State<KMeansScreen> {
                     : Expanded(
                         child: SingleChildScrollView(
                           child: DataTable(
+                            dataRowHeight: 100,
+                            headingRowHeight: 50.0,
                             columns: const <DataColumn>[
                               DataColumn(
-                                label: Text('Cluster'),
+                                label: Text(
+                                  'Cluster',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                               ),
                               DataColumn(
-                                label: Text('Data IDs'),
+                                label: Text('Data IDs',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
                               ),
                             ],
                             rows: results.entries
@@ -239,11 +303,15 @@ class _KMeansScreenState extends State<KMeansScreen> {
                                   (entry) => DataRow(
                                     cells: [
                                       DataCell(Text(entry.key)),
-                                      DataCell(Wrap(
-                                        children: [
-                                          Text(entry.value),
-                                        ],
-                                      )),
+                                      DataCell(
+                                        Expanded(
+                                          child: Wrap(
+                                            children: [
+                                              Text(entry.value),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 )
