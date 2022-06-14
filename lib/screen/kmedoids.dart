@@ -126,7 +126,7 @@ class _KMedoidsScreenState extends State<KMedoidsScreen> {
   sendData() async {
     var statusCode = 0;
 
-    Uri url = Uri.parse("http://localhost:3080/kmedoids");
+    Uri url = Uri.parse("$baseURL/kmedoids");
 
     var requestBody = {
       "k_exact": kExact!,
@@ -264,6 +264,8 @@ class _KMedoidsScreenState extends State<KMedoidsScreen> {
                     : Expanded(
                         child: SingleChildScrollView(
                           child: DataTable(
+                            dataRowColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.white),
                             dataRowHeight: 100,
                             headingRowHeight: 50.0,
                             columns: const <DataColumn>[
@@ -285,12 +287,10 @@ class _KMedoidsScreenState extends State<KMedoidsScreen> {
                                     cells: [
                                       DataCell(Text(entry.key)),
                                       DataCell(
-                                        Expanded(
-                                          child: Wrap(
-                                            children: [
-                                              Text(entry.value),
-                                            ],
-                                          ),
+                                        Wrap(
+                                          children: [
+                                            Text(entry.value),
+                                          ],
                                         ),
                                       ),
                                     ],

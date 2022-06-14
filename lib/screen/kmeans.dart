@@ -126,7 +126,7 @@ class _KMeansScreenState extends State<KMeansScreen> {
   sendData() async {
     var statusCode = 0;
 
-    Uri url = Uri.parse("http://localhost:3080/kmeans");
+    Uri url = Uri.parse("$baseURL/kmeans");
 
     var requestBody = {
       "k_exact": kExact!,
@@ -285,6 +285,8 @@ class _KMeansScreenState extends State<KMeansScreen> {
                           child: DataTable(
                             dataRowHeight: 100,
                             headingRowHeight: 50.0,
+                            dataRowColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.white),
                             columns: const <DataColumn>[
                               DataColumn(
                                 label: Text(
@@ -304,12 +306,10 @@ class _KMeansScreenState extends State<KMeansScreen> {
                                     cells: [
                                       DataCell(Text(entry.key)),
                                       DataCell(
-                                        Expanded(
-                                          child: Wrap(
-                                            children: [
-                                              Text(entry.value),
-                                            ],
-                                          ),
+                                        Wrap(
+                                          children: [
+                                            Text(entry.value),
+                                          ],
                                         ),
                                       ),
                                     ],

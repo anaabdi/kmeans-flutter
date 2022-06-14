@@ -12,3 +12,4 @@ const grayBorder = Color(0xFFDBDBDB);
 const orderCategoryColor = Color(0xFF515151);
 const orderServiceColor = Color(0xFF212121);
 const orderIdColor = Color(0xFFFF4547);
+const baseURL = "https://b93b-180-251-155-33.ngrok.io";
