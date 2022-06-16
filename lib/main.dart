@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kmeans/const.dart';
+import 'package:flutter_kmeans/screen/clastering.dart';
 import 'package:flutter_kmeans/screen/kmeans.dart';
 import 'package:flutter_kmeans/screen/kmedoids.dart';
+import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,6 +31,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Pencarian KMeans dan KMedoids'),
+      //home: ClusteringScreen(),
     );
   }
 }
@@ -58,6 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  bool isDataSetReady = false;
+
   void _showDialog() {
     // flutter defined function
     showDialog(
@@ -66,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // return object of type Dialog
         return AlertDialog(
           title: const Text("Final Project"),
-          content: Text("Author: Arya"),
+          content: const Text("Author: Arya"),
           actions: [
             TextButton(
               child: const Text("OK"),
@@ -81,6 +88,50 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  PlatformFile? objFile;
+
+  void chooseFileUsingFilePicker() async {
+    var result = await FilePicker.platform.pickFiles(
+      withReadStream:
+          true, // this will return PlatformFile object with read stream
+    );
+    if (result != null) {
+      setState(() {
+        objFile = result.files.single;
+      });
+    }
+  }
+
+  void uploadSelectedFile() async {
+    if (objFile != null) {
+//---Create http package multipart request object
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.parse("$baseURL/upload-dataset"),
+      );
+      //-----add other fields if needed
+      //request.fields["id"] = "abc";
+
+      //-----add selected file with request
+      request.files.add(http.MultipartFile(
+          "datasetFile", objFile!.readStream!, objFile!.size,
+          filename: objFile!.name));
+
+      //-------Send request
+      var resp = await request.send();
+
+      //------Read response
+      String result = await resp.stream.bytesToString();
+
+      //-------Your response
+      print(result);
+
+      setState(() {
+        isDataSetReady = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,29 +142,101 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Pilih metode nya:',
+            // const Text(
+            //   'Pilih metode nya:',
+            // ),
+            // const SizedBox(
+            //   height: 30,
+            // ),
+            // SizedBox(
+            //   width: 200,
+            //   height: 50,
+            //   child: ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(context,
+            //           MaterialPageRoute(builder: (context) => KMeansScreen()));
+            //     },
+            //     child: const Text("K-Means"),
+            //   ),
+            // ),
+            // const SizedBox(
+            //   height: 30,
+            // ),
+            // SizedBox(
+            //   width: 200,
+            //   height: 50,
+            //   child: ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //               builder: (context) => KMedoidsScreen()));
+            //     },
+            //     child: const Text("K-Medoids"),
+            //   ),
+            // ),
+
+            (objFile != null)
+                ? Text("File name : ${objFile!.name}")
+                : const SizedBox.shrink(),
+            (objFile != null)
+                ? Text("File size : ${objFile!.size} bytes")
+                : const SizedBox.shrink(),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 200,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      chooseFileUsingFilePicker();
+                    },
+                    child: const Text("Pilih Dataset"),
+                  ),
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                SizedBox(
+                  width: 200,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: (objFile != null)
+                        ? () {
+                            uploadSelectedFile();
+                          }
+                        : null,
+                    child: (objFile != null)
+                        ? const Text("Upload Dataset")
+                        : const CircularProgressIndicator(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(
               height: 30,
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => KMeansScreen()));
-              },
-              child: const Text("K-Means"),
+            SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: (isDataSetReady)
+                    ? () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ClusteringScreen()));
+                      }
+                    : null,
+                child: (isDataSetReady)
+                    ? const Text("Mulai Pengelompokan")
+                    : const CircularProgressIndicator(),
+              ),
             ),
-            const SizedBox(
-              height: 30,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => KMedoidsScreen()));
-              },
-              child: const Text("K-Medoids"),
-            )
           ],
         ),
       ),
