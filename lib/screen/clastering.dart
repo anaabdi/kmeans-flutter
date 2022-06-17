@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_kmeans/const.dart';
+import 'package:flutter_kmeans/model/dataset.dart';
 import 'package:flutter_kmeans/model/kmeans.dart';
 import 'package:http/http.dart' as http;
 
@@ -70,6 +71,8 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
   int totalIterationKMedoids = 0;
   String durationKMedoids = "";
 
+  List<Datasets>? datasets = [];
+
   final formKey = new GlobalKey<FormState>();
 
   void _showDialog(String message) {
@@ -93,6 +96,13 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
         );
       },
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getDatasets();
   }
 
   void _submitKMeans() {
@@ -249,25 +259,107 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
     });
   }
 
+  getDatasets() async {
+    var statusCode = 0;
+
+    Uri url = Uri.parse("$baseURL/datasets");
+
+    final res = await http.get(
+      url,
+      headers: null,
+    );
+    print('res.statusCode: ${res.statusCode}');
+    statusCode = res.statusCode;
+    if (statusCode != 200) {
+      setState(() {});
+
+      showSnackBar(res.body, Colors.redAccent);
+      return;
+    }
+
+    var decodedJson = jsonDecode(res.body);
+    print('result: $decodedJson');
+
+    var resp = Dataset.fromJson(decodedJson);
+    print('statusCode $statusCode');
+    if (statusCode != 200) {
+      result = "Gagal mendapatkan dataset";
+      print(result);
+    } else {
+      setState(() {
+        datasets = resp.datasets;
+      });
+      print('len datasets: ${datasets!.length}');
+    }
+  }
+
   void displayDatasets() {
     // flutter defined function
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
+        List<DataRow> rows = [];
+        for (var element in datasets!) {
+          rows.add(DataRow(
+            cells: [
+              DataCell(Text('${element.id}')),
+              DataCell(Text('${element.humidity}')),
+              DataCell(Text('${element.temperature}')),
+              DataCell(Text('${element.stepCount}')),
+            ],
+          ));
+        }
+
         return AlertDialog(
-          title: const Text("Final Project"),
-          content: const Text("Author: Arya"),
-          actions: [
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                //Navigator.pop(context);
-                Navigator.of(context).pop();
-              },
+          title: Text("Dataset"),
+          content: Container(
+            height: 700,
+            width: 500,
+            child: SingleChildScrollView(
+              child: DataTable(
+                dataRowColor:
+                    MaterialStateColor.resolveWith((states) => Colors.white),
+                columns: const <DataColumn>[
+                  DataColumn(
+                    label: Text(
+                      'No.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Humidity',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text('Temperature',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  DataColumn(
+                    label: Text('Step Count',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+                rows: rows,
+              ),
             ),
-          ],
+          ),
         );
+        // AlertDialog(
+        //   title: const Text("Final Project"),
+        //   content: const Text("Author: Arya"),
+        //   actions: [
+        //     TextButton(
+        //       child: const Text("OK"),
+        //       onPressed: () {
+        //         //Navigator.pop(context);
+        //         Navigator.of(context).pop();
+        //       },
+        //     ),
+        //   ],
+        // );
       },
     );
   }
