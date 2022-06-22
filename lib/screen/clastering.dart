@@ -510,22 +510,35 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                                                   fontWeight: FontWeight.bold)),
                                         ),
                                       ],
-                                      rows: resultsKMeans.entries
-                                          .map(
-                                            (entry) => DataRow(
-                                              cells: [
-                                                DataCell(Text(entry.key)),
-                                                DataCell(
-                                                  Wrap(
-                                                    children: [
-                                                      Text(entry.value),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
+                                      rows: resultsKMeans.entries.map((entry) {
+                                        return DataRow(
+                                          cells: [
+                                            DataCell(
+                                              SizedBox(
+                                                height: 50,
+                                                child: Text(entry.key,
+                                                    softWrap: true,
+                                                    overflow:
+                                                        TextOverflow.ellipsis),
+                                              ),
                                             ),
-                                          )
-                                          .toList(),
+                                            DataCell(
+                                              SizedBox(
+                                                height: 50,
+                                                child: Text(entry.value,
+                                                    softWrap: true,
+                                                    overflow:
+                                                        TextOverflow.visible),
+                                              ),
+                                              // Wrap(
+                                              //   children: [
+                                              //     Text(entry.value),
+                                              //   ],
+                                              // ),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
                                 ),
