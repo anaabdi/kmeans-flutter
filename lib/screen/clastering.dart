@@ -3,9 +3,11 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_kmeans/const.dart';
+import 'package:flutter_kmeans/model/chart.dart';
 import 'package:flutter_kmeans/model/dataset.dart';
 import 'package:flutter_kmeans/model/kmeans.dart';
 import 'package:http/http.dart' as http;
+import 'package:fl_chart/fl_chart.dart';
 
 class ClusteringScreen extends StatefulWidget {
   ClusteringScreen({Key? key}) : super(key: key);
@@ -364,6 +366,112 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
     );
   }
 
+  double totalInCluster(String res) {
+    List<String> result = res.split(', ');
+    return result.length.toDouble();
+  }
+
+  void displayResultGraphAnalysis() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+
+        var screenSize = MediaQuery.of(context).size;
+
+        List<ChartData> datas = [];
+
+        var kValue = int.parse(kExact!);
+
+        for (var i = 1; i <= kValue; i++) {
+          var clusterName = "C$i";
+          var totalInKMeans = resultsKMeans[clusterName];
+          print('total in kmeans: $totalInKMeans');
+
+          var totalInKMedois = resultsKMedoids[clusterName];
+          print('total in kmedoids: $totalInKMedois');
+
+          datas.add(
+            ChartData(
+                id: i,
+                clusterName: "C$i",
+                totalInKMeans: totalInCluster(totalInKMeans),
+                totalInKMedoids: totalInCluster(totalInKMedois)),
+          );
+        }
+
+        return AlertDialog(
+          title: Row(
+            children: const [
+              Text(
+                'KMeans',
+                style: TextStyle(backgroundColor: Colors.blue),
+              ),
+              SizedBox(
+                width: 30,
+              ),
+              Text(
+                'KMedoids',
+                style: TextStyle(backgroundColor: Colors.green),
+              )
+            ],
+          ),
+          content: Container(
+            width: screenSize.width * 0.5,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: datasets!.length.toDouble(),
+                minY: 0,
+                groupsSpace: 10,
+                borderData: FlBorderData(
+                    border: const Border(
+                  top: BorderSide.none,
+                  right: BorderSide.none,
+                  left: BorderSide(width: 1),
+                  bottom: BorderSide(width: 1),
+                )),
+                barGroups: datas
+                    .map(
+                      (e) => BarChartGroupData(
+                        x: e.id,
+                        barRods: [
+                          BarChartRodData(
+                            toY: e.totalInKMeans,
+                            color: Colors.blue,
+                            width: 30,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          BarChartRodData(
+                            color: Colors.green,
+                            width: 30,
+                            toY: e.totalInKMedoids,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ],
+                      ),
+                    )
+                    .toList(),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    axisNameWidget: Text("Cluster"),
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      // getTitlesWidget: (double v, TitleMeta vs) {
+                      //   return
+                      // }
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
@@ -639,7 +747,18 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                     ),
                   ],
                 ),
-              )
+              ),
+              Container(
+                margin: EdgeInsets.all(50),
+                height: 50,
+                width: 500,
+                child: ElevatedButton(
+                  onPressed: () {
+                    displayResultGraphAnalysis();
+                  },
+                  child: const Text("Display Graph Result"),
+                ),
+              ),
             ],
           ),
         ),

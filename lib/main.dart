@@ -96,8 +96,10 @@ class _MyHomePageState extends State<MyHomePage> {
           true, // this will return PlatformFile object with read stream
     );
     if (result != null) {
+      objFile = result.files.single;
+      uploadSelectedFile();
       setState(() {
-        objFile = result.files.single;
+        isDataSetReady = true;
       });
     }
   }
@@ -125,10 +127,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
       //-------Your response
       print(result);
-
-      setState(() {
-        isDataSetReady = true;
-      });
     }
   }
 
@@ -185,37 +183,15 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(
               height: 10,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      chooseFileUsingFilePicker();
-                    },
-                    child: const Text("Pilih Dataset"),
-                  ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: (objFile != null)
-                        ? () {
-                            uploadSelectedFile();
-                          }
-                        : null,
-                    child: (objFile != null)
-                        ? const Text("Upload Dataset")
-                        : const CircularProgressIndicator(),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  chooseFileUsingFilePicker();
+                },
+                child: const Text("Pilih Dataset"),
+              ),
             ),
             const SizedBox(
               height: 30,
