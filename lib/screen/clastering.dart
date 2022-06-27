@@ -113,7 +113,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
     if (form.validate()) {
       form.save();
 
-      if (kExact == null || initialCentroidRowIDs == null) {
+      if (kExact == null) {
         _showDialog("Harap masukkan data yang dibutuhkan");
       } else {
         setState(() {
@@ -136,7 +136,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
     if (form.validate()) {
       form.save();
 
-      if (kExact == null || initialCentroidRowIDs == null) {
+      if (kExact == null) {
         _showDialog("Harap masukkan data yang dibutuhkan");
       } else {
         setState(() {
@@ -172,7 +172,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
 
     var requestBody = {
       "k_exact": kExact!,
-      "initial_centroid_row_ids": initialCentroidRowIDs!,
+      //"initial_centroid_row_ids": initialCentroidRowIDs!,
     };
 
     final res = await http.post(url, headers: null, body: requestBody);
@@ -220,7 +220,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
 
     var requestBody = {
       "k_exact": kExact!,
-      "initial_centroid_row_ids": initialCentroidRowIDs!,
+      //"initial_centroid_row_ids": initialCentroidRowIDs!,
     };
 
     final res = await http.post(url, headers: null, body: requestBody);
@@ -519,27 +519,27 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                       const SizedBox(
                         height: 30,
                       ),
-                      SizedBox(
-                        height: 50,
-                        width: 500,
-                        child: TextFormField(
-                          decoration: getInputDecoration(
-                            "Data ID Centroid Awal",
-                            "Masukkan Data ID Pilihan Centroid Awal, sejumlah nilai K, dipisah koma ,",
-                            null,
-                          ),
-                          maxLines: 2,
-                          validator: (val) => (val!.isEmpty)
-                              ? 'minimal 1 karakter, sesuaikan dengan nilai K'
-                              : null,
-                          onSaved: (val) => initialCentroidRowIDs = val,
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
+                      // SizedBox(
+                      //   height: 50,
+                      //   width: 500,
+                      //   child: TextFormField(
+                      //     decoration: getInputDecoration(
+                      //       "Data ID Centroid Awal",
+                      //       "Masukkan Data ID Pilihan Centroid Awal, sejumlah nilai K, dipisah koma ,",
+                      //       null,
+                      //     ),
+                      //     maxLines: 2,
+                      //     validator: (val) => (val!.isEmpty)
+                      //         ? 'minimal 1 karakter, sesuaikan dengan nilai K'
+                      //         : null,
+                      //     onSaved: (val) => initialCentroidRowIDs = val,
+                      //     obscureText: false,
+                      //     keyboardType: TextInputType.text,
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 30,
+                      // ),
                     ],
                   ),
                 ),
