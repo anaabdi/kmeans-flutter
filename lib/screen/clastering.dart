@@ -73,6 +73,9 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
   int totalIterationKMedoids = 0;
   String durationKMedoids = "";
 
+  double standardDevKMeans = 0;
+  double standardDevKMedoids = 0;
+
   List<Datasets>? datasets = [];
 
   final formKey = new GlobalKey<FormState>();
@@ -123,6 +126,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
           initialCentroidsKMeans = {};
           resultsKMeans = {};
           isSearchingKMeans = true;
+          standardDevKMeans = 0;
         });
 
         sendDataMeans();
@@ -146,6 +150,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
           initialCentroidsKMedoids = {};
           resultsKMedoids = {};
           isSearchingKMedoids = true;
+          standardDevKMedoids = 0;
         });
 
         sendDataMedoids();
@@ -202,6 +207,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
       totalIterationKMedoids = resp.totalIteration!;
       durationKMedoids = resp.duration!;
       initialCentroidsKMedoids = resp.initialCentroids!;
+      standardDevKMedoids = resp.highestStandardDeviation!;
     } else {
       result = "Gagal mendapatkan hasil";
       print('failed to add result');
@@ -250,6 +256,7 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
       totalIterationKMeans = resp.totalIteration!;
       durationKMeans = resp.duration!;
       initialCentroidsKMeans = resp.initialCentroids!;
+      standardDevKMeans = resp.highestStandardDeviation!;
     } else {
       result = "Gagal mendapatkan hasil";
       print('failed to add result');
@@ -362,6 +369,55 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
         //     ),
         //   ],
         // );
+      },
+    );
+  }
+
+  void displayEvaluationResults() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+
+        String result = "";
+
+        if (standardDevKMeans < standardDevKMedoids) {
+          result = "K-Means lebih baik dibandingkan K-Medoids";
+        } else if (standardDevKMeans > standardDevKMedoids) {
+          result = "K-Medoids lebih baik dibandingkan K-Means";
+        } else {
+          result = "K-Means sama baik nya dengan K-Medoids";
+        }
+
+        String conclusion =
+            "Perbandingan dari kedua metode dengan Standar deviasi Sampel : maka $result";
+
+        return AlertDialog(
+          title: const Text("Evaluation Results"),
+          content: SizedBox(
+            height: 50,
+            child: Column(
+              children: [
+                Text(
+                    "Standar Deviasi KMeans ($standardDevKMeans) <> KMedoids ($standardDevKMedoids)"),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(conclusion),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () {
+                //Navigator.pop(context);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
       },
     );
   }
@@ -758,6 +814,22 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                   },
                   child: const Text("Display Graph Result"),
                 ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Container(
+                height: 50,
+                width: 500,
+                child: ElevatedButton(
+                  onPressed: () {
+                    displayEvaluationResults();
+                  },
+                  child: const Text("Display Evaluation Result"),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
               ),
             ],
           ),
