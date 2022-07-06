@@ -53,10 +53,12 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
   }
 
   String? kExact;
+  String? currentK;
   String? initialCentroidRowIDs;
   String? rangeMin;
   String? rangeMax;
   String? result;
+  bool isKValueChanged = false;
   bool isSearchingKMeans = false;
   bool isSearchingKMedoids = false;
   final resultController = TextEditingController();
@@ -127,6 +129,19 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
           resultsKMeans = {};
           isSearchingKMeans = true;
           standardDevKMeans = 0;
+          if (currentK != null && kExact! != currentK) {
+            isKValueChanged = true;
+
+            totalClusterKMedoids = 0;
+            totalIterationKMedoids = 0;
+            durationKMedoids = "";
+            initialCentroidsKMedoids = {};
+            resultsKMedoids = {};
+            isSearchingKMedoids = false;
+            standardDevKMedoids = 0;
+          }
+
+          currentK = kExact!;
         });
 
         sendDataMeans();
@@ -151,6 +166,19 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
           resultsKMedoids = {};
           isSearchingKMedoids = true;
           standardDevKMedoids = 0;
+          if (currentK != null && kExact! != currentK) {
+            isKValueChanged = true;
+
+            totalClusterKMeans = 0;
+            totalIterationKMeans = 0;
+            durationKMeans = "";
+            initialCentroidsKMeans = {};
+            resultsKMeans = {};
+            isSearchingKMeans = false;
+            standardDevKMeans = 0;
+          }
+
+          currentK = kExact!;
         });
 
         sendDataMedoids();
@@ -612,11 +640,11 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                       child: Column(
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              // Navigator.push(context,
-                              //     MaterialPageRoute(builder: (context) => ClusteringScreen()));
-                              _submitKMeans();
-                            },
+                            onPressed: (isSearchingKMedoids)
+                                ? null
+                                : () {
+                                    _submitKMeans();
+                                  },
                             child: const Text("Run K-Means"),
                           ),
                           const SizedBox(
@@ -653,58 +681,29 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                               ? const CircularProgressIndicator()
                               : Container(
                                   height: 400,
-                                  child: SingleChildScrollView(
-                                    child: DataTable(
-                                      dataRowColor:
-                                          MaterialStateColor.resolveWith(
-                                              (states) => Colors.white),
-                                      dataRowHeight: 300,
-                                      headingRowHeight: 50.0,
-                                      columns: const <DataColumn>[
-                                        DataColumn(
-                                          label: Text(
-                                            'Cluster',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          label: Text('Data IDs',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ],
-                                      rows: resultsKMeans.entries.map((entry) {
-                                        return DataRow(
-                                          cells: [
-                                            DataCell(
-                                              SizedBox(
-                                                height: 50,
-                                                child: Text(entry.key,
-                                                    softWrap: true,
-                                                    overflow:
-                                                        TextOverflow.ellipsis),
-                                              ),
-                                            ),
-                                            DataCell(
-                                              SizedBox(
-                                                height: 50,
-                                                child: Text(entry.value,
-                                                    softWrap: true,
-                                                    overflow:
-                                                        TextOverflow.visible),
-                                              ),
-                                              // Wrap(
-                                              //   children: [
-                                              //     Text(entry.value),
-                                              //   ],
-                                              // ),
-                                            ),
-                                          ],
+                                  child: ListView.separated(
+                                      itemBuilder: ((context, index) {
+                                        var keys = resultsKMeans.keys.toList();
+                                        var val = resultsKMeans[keys[index]];
+
+                                        return ListTile(
+                                          leading: Text(keys[index],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 30,
+                                              )),
+                                          title: Text(val,
+                                              softWrap: true,
+                                              overflow: TextOverflow.visible),
                                         );
-                                      }).toList(),
-                                    ),
-                                  ),
+                                      }),
+                                      separatorBuilder:
+                                          (BuildContext context, int index) =>
+                                              const Divider(
+                                                color: Colors.blue,
+                                                thickness: 2.0,
+                                              ),
+                                      itemCount: resultsKMeans.length),
                                 ),
                         ],
                       ),
@@ -719,9 +718,11 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              _submitKMedoids();
-                            },
+                            onPressed: (isSearchingKMeans)
+                                ? null
+                                : () {
+                                    _submitKMedoids();
+                                  },
                             child: const Text("Run K-Medoids"),
                           ),
                           const SizedBox(
@@ -758,45 +759,30 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                               ? const CircularProgressIndicator()
                               : Container(
                                   height: 400,
-                                  child: SingleChildScrollView(
-                                    child: DataTable(
-                                      dataRowColor:
-                                          MaterialStateColor.resolveWith(
-                                              (states) => Colors.white),
-                                      dataRowHeight: 300,
-                                      headingRowHeight: 50.0,
-                                      columns: const <DataColumn>[
-                                        DataColumn(
-                                          label: Text(
-                                            'Cluster',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          label: Text('Data IDs',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ],
-                                      rows: resultsKMedoids.entries
-                                          .map(
-                                            (entry) => DataRow(
-                                              cells: [
-                                                DataCell(Text(entry.key)),
-                                                DataCell(
-                                                  Wrap(
-                                                    children: [
-                                                      Text(entry.value),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ),
+                                  child: ListView.separated(
+                                      itemBuilder: ((context, index) {
+                                        var keys =
+                                            resultsKMedoids.keys.toList();
+                                        var val = resultsKMedoids[keys[index]];
+
+                                        return ListTile(
+                                          leading: Text(keys[index],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 30,
+                                              )),
+                                          title: Text(val,
+                                              softWrap: true,
+                                              overflow: TextOverflow.visible),
+                                        );
+                                      }),
+                                      separatorBuilder:
+                                          (BuildContext context, int index) =>
+                                              const Divider(
+                                                color: Colors.blue,
+                                                thickness: 2.0,
+                                              ),
+                                      itemCount: resultsKMedoids.length),
                                 ),
                         ],
                       ),
@@ -809,9 +795,12 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                 height: 50,
                 width: 500,
                 child: ElevatedButton(
-                  onPressed: () {
-                    displayResultGraphAnalysis();
-                  },
+                  onPressed:
+                      (resultsKMeans.isNotEmpty && resultsKMedoids.isNotEmpty)
+                          ? () {
+                              displayResultGraphAnalysis();
+                            }
+                          : null,
                   child: const Text("Display Graph Result"),
                 ),
               ),
@@ -822,9 +811,12 @@ class _ClusteringScreenState extends State<ClusteringScreen> {
                 height: 50,
                 width: 500,
                 child: ElevatedButton(
-                  onPressed: () {
-                    displayEvaluationResults();
-                  },
+                  onPressed:
+                      (resultsKMeans.isNotEmpty && resultsKMedoids.isNotEmpty)
+                          ? () {
+                              displayEvaluationResults();
+                            }
+                          : null,
                   child: const Text("Display Evaluation Result"),
                 ),
               ),
